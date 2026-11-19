@@ -172,6 +172,9 @@ a.dl{display:inline-block;margin-top:10px;font-weight:700;color:var(--navy);text
 .dlg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:12px 0}
 .dlc{border:3px solid var(--navy);border-radius:18px;background:var(--paper);padding:16px;display:flex;flex-direction:column;gap:8px}
 .dlc h3{margin:0;font-size:1.25rem}.dlc p{margin:0}.dlc .btn{align-self:flex-start;margin-top:auto}
+.nonebox{margin:16px 0 6px;padding:12px 14px;border:2px dashed var(--navy);border-radius:16px;background:var(--paper)}
+.nonebox .btn{width:100%;min-height:54px;font-size:1.05rem}
+.nonebox p{margin:6px 0 0}
 </style></head>
 <body><noscript><p style="padding:20px;font-family:sans-serif">This page needs JavaScript. Please turn it on.</p></noscript>
 <div id="app"></div>
@@ -418,7 +421,7 @@ function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
 var PARAMS=new URLSearchParams(location.search);
 var TEACHER=PARAMS.get('teacher')==='1';
 var KEY='scelgo_la_mia_scuola_v1';
-var S={path:null,step:1,done:{},age:null,hs:'',town:'',ints:[],school:null,ex:'',src:'',mine:{years:null,subj:null,has:null,focus:null},edit:{},card:0,cardMax:0,qa:{},opened:false,fnd:{sch:'',sub:'',th:'',help:false,chk:{},opened:false},altRec:false,mm:{sel:[],area:'',all:false},q:{frame:null,fill:'',text:''},ansDone:false,watched:false,teach:{c1:false,c2:false},self:{},say:{},sz:0,spacing:0,saved:false};
+var S={path:null,step:1,done:{},age:null,hs:'',town:'',ints:[],school:null,ex:'',src:'',mine:{years:null,subj:null,has:null,focus:null},edit:{},card:0,cardMax:0,qa:{},opened:false,fnd:{sch:'',sub:'',th:'',help:false,chk:{},opened:false},altRec:false,mm:{sel:[],area:'',all:false},q:{frame:null,fill:'',text:''},ansDone:false,watched:false,teach:{c1:false,c2:false},self:{},say:{},sz:0,spacing:0,saved:false,full:false};
 var MEM={};  /* never saved: name is never asked; recordings stay in memory */
 function load(){try{var j=localStorage.getItem(KEY);if(j){var o=JSON.parse(j);for(var k in o)if(k in S)S[k]=o[k];}}catch(e){}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -647,7 +650,7 @@ function stepIds(){return IDS[P()]}
 function curId(){return stepIds()[S.step-1]}
 function schoolList(){
   var custom=PARAMS.get('schools');
-  if(custom){var l=custom.split(',').map(byId).filter(Boolean);if(l.length)return l}
+  if(custom&&!S.full){var l=custom.split(',').map(byId).filter(Boolean);if(l.length)return l}
   if(S.full||PARAMS.get('list')==='all')return SCHOOLS;
   return DEFAULT4.map(byId)}
 function dirBox(id){var d=(DIRS[P()][id]||DIRS.A[id]);
@@ -718,8 +721,11 @@ function schoolsFor(tid,n){var l=(RTYPE[tid]||[]).map(rById).filter(Boolean);if(
 function rExamples(s){var l=schoolsFor(s.id,2);if(!l.length)return '';return '<small class="rex"><b>In Rome:</b> '+l.map(function(x){return esc(x.sh)}).join(', ')+'</small>'}
 function schoolCard(s){return '<button class="sc'+(S.school===s.id?' sel':'')+'" data-act="pick" data-v="'+s.id+'" aria-pressed="'+(S.school===s.id)+'"><img src="'+IMG[s.art]+'" alt="'+esc(s.en)+'"><span class="nm">'+esc(s.it)+'</span><small>'+esc(s.en)+'</small><small>'+esc(s.introEn)+'</small>'+rExamples(s)+'</button>'}
 function vPick(){var l=schoolList(),h='';
-  if(l.length>4&&!PARAMS.get('schools')){var cur='';h+='<p class="hint">All school types are on. Pick one.</p>';GRP_ORDER.forEach(function(g){var items=l.filter(function(s){return s.grp===g});if(!items.length)return;h+='<h3 style="margin-top:14px">'+esc(GRP_LABEL[g])+'</h3><div class="grid">'+items.map(schoolCard).join('')+'</div>'})}
+  if(l.length>4&&(S.full||!PARAMS.get('schools'))){var cur='';h+='<p class="hint">All '+l.length+' school types are on. Pick one.</p>';GRP_ORDER.forEach(function(g){var items=l.filter(function(s){return s.grp===g});if(!items.length)return;h+='<h3 style="margin-top:14px">'+esc(GRP_LABEL[g])+'</h3><div class="grid">'+items.map(schoolCard).join('')+'</div>'})}
   else h+='<div class="grid">'+l.map(schoolCard).join('')+'</div>';
+  var sc0=byId(S.school),dflt=!sc0||DEFAULT4.indexOf(sc0.id)>-1||!!PARAMS.get('schools');
+  if(!S.full)h+='<div class="nonebox"><button class="btn sec" data-act="allt">None of these? See all school types</button><p class="small">All 17 types are there. Each has real Rome school files.</p></div>';
+  else if(dflt)h+='<div class="nonebox"><button class="btn sec sm" data-act="allt">Back to the 4 cards</button></div>';
   var sc=byId(S.school);if(sc)h+='<p class="fb ok" role="status" style="margin-top:14px"><b>You picked:</b> '+esc(sc.it)+' \u2014 '+esc(sc.en)+'</p>';
   h+=vMatter();
   return h+exampleBlock('pick')}
@@ -737,7 +743,7 @@ function mmCalc(s){var m=mmState(),res=[],yes=0;
 function mmBadge(s){var m=mmState();if(!m.sel.length&&!m.area)return '';var r=mmCalc(s);return '<p class="small mmb"><b>What matters to me:</b> '+r.n+' of '+r.tot+' yes</p>'}
 function mmRow(s,r,p){var h='<div class="mmr"><div class="rsh"><b class="nm">'+esc(s.n)+'</b>'+stBadge(s)+sayBtn(s.n,'it-IT','Listen to the school name')+'<span class="mmn">'+r.n+' of '+r.tot+' yes</span></div>';
   h+='<ul class="mml">'+r.rows.map(function(x){return '<li class="'+x.st+'"><b>'+(x.st==='yes'?'Yes':x.st==='no'?'No':'Not found')+':</b> '+esc(x.l)+'<span class="small"> \u2014 '+esc(x.t)+'</span></li>'}).join('')+'</ul>';
-  var avail=schoolList().map(function(t){return t.id}),tp=s.t.filter(function(t){return avail.indexOf(t)>-1}),nm=s.t.map(function(t){var o=byId(t);return o?o.it:t});
+  var tp=s.t.filter(function(t){return !!byId(t)}),nm=s.t.map(function(t){var o=byId(t);return o?o.it:t});
   h+='<p class="small" style="margin:4px 0 0">Types: '+esc(nm.join(', '))+'</p>';
   if(tp.length)h+='<p style="margin:6px 0 0">'+tp.map(function(t){var o=byId(t);return '<button class="btn sm sec" data-act="pick" data-v="'+t+'">Pick '+esc(o.it)+'</button>'}).join(' ')+'</p>';
   return h+'</div>'}
@@ -752,7 +758,6 @@ function vMatter(){var m=mmState(),p=P(),h='<h2 style="margin-top:24px">What mat
   var full=all.filter(function(x){return x.r.n===x.r.tot}).length,lim=m.all?all.length:(p==='C'?4:6);
   h+='<p class="fb ok" role="status"><b>'+full+' of 54 schools</b> say yes to everything you ticked. '+all.length+' say yes to at least one.</p>';
   if(!all.length)return h+'<p>No school file says yes yet. Try fewer ticks.</p>';
-  h+='<p class="small">A <b>Pick</b> button shows only for school types on your cards. If a school has none, ask your teacher about its type.</p>';
   h+='<div class="mmrl">'+all.slice(0,lim).map(function(x){return mmRow(x.s,x.r,p)}).join('')+'</div>';
   if(all.length>lim)h+='<p><button class="btn sec" data-act="mmall">Show all '+all.length+' schools</button></p>';
   else if(m.all&&all.length>(p==='C'?4:6))h+='<p><button class="btn sec" data-act="mmall">Show fewer</button></p>';
@@ -1000,7 +1005,8 @@ document.addEventListener('click',function(e){
    case 'cprev':S.card=Math.max(0,S.card-1);save();render(true);return;
    case 'cnext':S.card=Math.min(CARDS.length-1,S.card+1);S.cardMax=Math.max(S.cardMax,S.card);save();render();document.activeElement&&0;return;
    case 'qa':S.qa[t.getAttribute('data-q')]=parseInt(v,10);save();render(true);return;
-   case 'pick':if(S.school!==v){S.school=v;S.mine.subj=null;S.mine.has=null;S.edit={};}save();render(true);return;
+   case 'pick':if(S.school!==v){S.school=v;S.mine.subj=null;S.mine.has=null;S.edit={};}if(DEFAULT4.indexOf(v)<0)S.full=true;save();render(true);return;
+   case 'allt':S.full=!S.full;save();render(true);try{var nb=document.querySelector('.grid .sc');if(S.full&&nb)nb.scrollIntoView({block:'start'})}catch(e){}return;
    case 'open':S.opened=true;save();return;
    case 'fopen':S.fnd.opened=true;save();refreshGate();return;
    case 'copyq':copyText(t.getAttribute('data-t'),'Copied. Now paste it into the search box.');return;
