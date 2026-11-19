@@ -335,7 +335,7 @@ var SCHOOLS=[
   who:['You like both old farming know-how and new technology.','You are interested in producing and transforming food.','You care about quality and the environment.'],
   note:'Istituti tecnici are being reorganised from 2026/27, so subject lists may change a little.',link:U+'tecnici/agraria-agroalimentare-e-agroindustria'}
 ];
-var DEFAULT4=['scientifico','artistico','turismo','alberghiero'];
+var DEFAULT6=['scientifico','linguistico','artistico','umane','turismo','alberghiero'];
 var GRP_LABEL={liceo:'Licei (5 years)',tecnico:'Istituti tecnici (5 years)',professionale:'Istituti professionali (5 years)',iefp:'IeFP (3 or 4 years)'};
 var INTERESTS=[
  {id:'mate',it:'la matematica',en:'mathematics'},{id:'sci',it:'le scienze',en:'science'},{id:'lingue',it:'le lingue',en:'languages'},
@@ -652,7 +652,7 @@ function schoolList(){
   var custom=PARAMS.get('schools');
   if(custom&&!S.full){var l=custom.split(',').map(byId).filter(Boolean);if(l.length)return l}
   if(S.full||PARAMS.get('list')==='all')return SCHOOLS;
-  return DEFAULT4.map(byId)}
+  return DEFAULT6.map(byId)}
 function dirBox(id){var d=(DIRS[P()][id]||DIRS.A[id]);
  var h='<div class="dir"><div><b>What to do</b>'+H(d[0],P())+'</div><div><b>What done looks like</b>'+H(d[1],P())+'</div><div><b>What comes next</b>'+H(d[2],P())+'</div></div>';
  if(P()!=='A')h=h.replace('<div class="dir">','<div class="dir">')+'';
@@ -721,11 +721,11 @@ function schoolsFor(tid,n){var l=(RTYPE[tid]||[]).map(rById).filter(Boolean);if(
 function rExamples(s){var l=schoolsFor(s.id,2);if(!l.length)return '';return '<small class="rex"><b>In Rome:</b> '+l.map(function(x){return esc(x.sh)}).join(', ')+'</small>'}
 function schoolCard(s){return '<button class="sc'+(S.school===s.id?' sel':'')+'" data-act="pick" data-v="'+s.id+'" aria-pressed="'+(S.school===s.id)+'"><img src="'+IMG[s.art]+'" alt="'+esc(s.en)+'"><span class="nm">'+esc(s.it)+'</span><small>'+esc(s.en)+'</small><small>'+esc(s.introEn)+'</small>'+rExamples(s)+'</button>'}
 function vPick(){var l=schoolList(),h='';
-  if(l.length>4&&(S.full||!PARAMS.get('schools'))){var cur='';h+='<p class="hint">All '+l.length+' school types are on. Pick one.</p>';GRP_ORDER.forEach(function(g){var items=l.filter(function(s){return s.grp===g});if(!items.length)return;h+='<h3 style="margin-top:14px">'+esc(GRP_LABEL[g])+'</h3><div class="grid">'+items.map(schoolCard).join('')+'</div>'})}
+  if(l.length>6){var cur='';h+='<p class="hint">All '+l.length+' school types are on. Pick one.</p>';GRP_ORDER.forEach(function(g){var items=l.filter(function(s){return s.grp===g});if(!items.length)return;h+='<h3 style="margin-top:14px">'+esc(GRP_LABEL[g])+'</h3><div class="grid">'+items.map(schoolCard).join('')+'</div>'})}
   else h+='<div class="grid">'+l.map(schoolCard).join('')+'</div>';
-  var sc0=byId(S.school),dflt=!sc0||DEFAULT4.indexOf(sc0.id)>-1||!!PARAMS.get('schools');
+  var sc0=byId(S.school),dflt=!sc0||DEFAULT6.indexOf(sc0.id)>-1||!!PARAMS.get('schools');
   if(!S.full)h+='<div class="nonebox"><button class="btn sec" data-act="allt">None of these? See all school types</button><p class="small">All 17 types are there. Each has real Rome school files.</p></div>';
-  else if(dflt)h+='<div class="nonebox"><button class="btn sec sm" data-act="allt">Back to the 4 cards</button></div>';
+  else if(dflt)h+='<div class="nonebox"><button class="btn sec sm" data-act="allt">Back to the 6 cards</button></div>';
   var sc=byId(S.school);if(sc)h+='<p class="fb ok" role="status" style="margin-top:14px"><b>You picked:</b> '+esc(sc.it)+' \u2014 '+esc(sc.en)+'</p>';
   h+=vMatter();
   return h+exampleBlock('pick')}
@@ -960,9 +960,9 @@ function teacherPanel(){if(!TEACHER)return '';
   ['A','B','C'].forEach(function(k){h+='<button class="chip'+(S.path===k?' sel':'')+'" data-act="tpath" data-v="'+k+'">Path '+k+'</button>'});
   h+='<button class="chip" data-act="tstart">Back to path picker</button></div>';
   if(S.path)h+='<label>Jump to step <select id="tjump" data-act="tjump">'+stepIds().map(function(id,i){return '<option value="'+(i+1)+'"'+(S.step===i+1?' selected':'')+'>'+(i+1)+'. '+esc(TITLES[id])+'</option>'}).join('')+'</select></label>';
-  h+='<label class="chk" style="margin:8px 0"><input type="checkbox" data-act="tfull" '+(S.full?'checked':'')+'><span>Show all 17 school types (not just 4 cards)</span></label>';
+  h+='<label class="chk" style="margin:8px 0"><input type="checkbox" data-act="tfull" '+(S.full?'checked':'')+'><span>Show all 17 school types (not just 6 cards)</span></label>';
   h+='<p class="small mb">Link for students (copy it): <input type="text" readonly value="'+esc(u)+'" onclick="this.select()" aria-label="Student link"></p>';
-  h+='<p class="small">Add <code>&amp;schools=scientifico,artistico,turismo,alberghiero</code> to choose your own cards. Path C teacher code word: <b>'+esc(TEACH_CODE)+'</b> (change with <code>&amp;code=word</code>).</p></div>';
+  h+='<p class="small">Add <code>&amp;schools=scientifico,linguistico,artistico,umane,turismo,alberghiero</code> to choose your own cards. Path C teacher code word: <b>'+esc(TEACH_CODE)+'</b> (change with <code>&amp;code=word</code>).</p></div>';
   return h}
 function applySize(){var base=(window.innerWidth<=420)?18:((P()==='B'||P()==='C')?21:19);document.documentElement.style.setProperty('--fs',(base+(S.sz||0)*2)+'px');document.documentElement.style.fontSize=(base+(S.sz||0)*2)+'px'}
 function dotsHtml(){var ids=stepIds(),max=ids.length,i,reach=1;for(i=0;i<ids.length;i++){if(S.done[ids[i]])reach=i+2;else break}if(TEACHER)reach=max;reach=Math.min(reach,max);
@@ -1005,7 +1005,7 @@ document.addEventListener('click',function(e){
    case 'cprev':S.card=Math.max(0,S.card-1);save();render(true);return;
    case 'cnext':S.card=Math.min(CARDS.length-1,S.card+1);S.cardMax=Math.max(S.cardMax,S.card);save();render();document.activeElement&&0;return;
    case 'qa':S.qa[t.getAttribute('data-q')]=parseInt(v,10);save();render(true);return;
-   case 'pick':if(S.school!==v){S.school=v;S.mine.subj=null;S.mine.has=null;S.edit={};}if(DEFAULT4.indexOf(v)<0)S.full=true;save();render(true);return;
+   case 'pick':if(S.school!==v){S.school=v;S.mine.subj=null;S.mine.has=null;S.edit={};}if(DEFAULT6.indexOf(v)<0)S.full=true;save();render(true);return;
    case 'allt':S.full=!S.full;save();render(true);try{var nb=document.querySelector('.grid .sc');if(S.full&&nb)nb.scrollIntoView({block:'start'})}catch(e){}return;
    case 'open':S.opened=true;save();return;
    case 'fopen':S.fnd.opened=true;save();refreshGate();return;
